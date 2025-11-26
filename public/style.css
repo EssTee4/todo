@@ -1,0 +1,293 @@
+/* --- General Styles --- */
+body {
+  font-family: "Arial", sans-serif;
+  background: #f5f7fa;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  color: #333;
+}
+
+/* --- Auth Pages --- */
+.auth-container {
+  width: 100%;
+  max-width: 400px;
+  padding: 20px;
+  background-color: white;
+  border-radius: 12px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+  text-align: center;
+}
+
+h2 {
+  color: #333;
+  margin-bottom: 20px;
+}
+
+/* --- Form Inputs --- */
+input {
+  width: 100%;
+  padding: 12px;
+  margin: 10px 0;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  font-size: 16px;
+  box-sizing: border-box;
+}
+
+/* --- Remember Me Checkbox --- */
+.remember-me {
+  display: flex;
+  justify-content: flex-start;
+  margin-top: 10px;
+  padding-left: 12px;
+}
+
+.remember-me input {
+  margin-right: 10px;
+}
+
+.remember-me label {
+  font-size: 14px;
+}
+
+/* --- Show Password Button --- */
+.show-password {
+  position: absolute;
+  right: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+  font-size: 18px;
+  color: #4a6cff;
+}
+
+/* --- Submit Button --- */
+button {
+  width: 100%;
+  padding: 12px;
+  background-color: #4a6cff;
+  color: white;
+  border: none;
+  font-size: 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  margin-top: 10px;
+}
+
+button:hover {
+  background-color: #324bd6;
+}
+
+/* --- Popup Notifications --- */
+.popup {
+  position: fixed;
+  top: 20px;
+  right: -350px;
+  background: #4a6cff;
+  color: white;
+  padding: 15px 20px;
+  border-radius: 8px;
+  font-size: 16px;
+  transition: 0.5s;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  max-width: 350px;
+}
+
+.popup.show {
+  right: 20px;
+}
+
+.popup.error {
+  background: #ff4d4d;
+}
+
+.popup.success {
+  background: #4caf50;
+}
+
+.popup .error-icon {
+  background: url("https://img.icons8.com/ios-filled/50/ffffff/delete-sign.png")
+    no-repeat center;
+  width: 24px;
+  height: 24px;
+  margin-right: 10px;
+}
+
+.popup .success-icon {
+  background: url("https://img.icons8.com/ios-filled/50/ffffff/ok.png")
+    no-repeat center;
+  width: 24px;
+  height: 24px;
+  margin-right: 10px;
+}
+
+/* --- Profile Page --- */
+.profile-container {
+  width: 80%;
+  max-width: 1200px;
+  margin: 20px auto;
+  padding: 20px;
+  background-color: white;
+  border-radius: 12px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+}
+
+.profile-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.profile-header h2 {
+  color: #333;
+}
+
+/* --- Add Task Section --- */
+.add-task-section {
+  margin-bottom: 20px;
+  display: flex;
+  justify-content: space-between;
+}
+
+#taskInput {
+  width: 75%;
+  padding: 10px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  font-size: 16px;
+}
+
+button {
+  width: 20%;
+  padding: 10px;
+  border-radius: 6px;
+  background-color: #4a6cff;
+  color: white;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+button:hover {
+  background-color: #324bd6;
+}
+
+/* --- Task Sections --- */
+.task-sections {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.task-section {
+  flex: 1;
+  min-height: 200px;
+  padding: 10px;
+  border-radius: 6px;
+  background-color: #fafafa;
+  overflow-y: auto;
+  border: 1px solid #ccc;
+}
+
+.task-section h3 {
+  text-align: center;
+  font-size: 18px;
+  color: #333;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+}
+
+table th,
+table td {
+  padding: 12px;
+  text-align: center;
+  border: 1px solid #ccc;
+  background-color: #fafafa;
+}
+
+table th {
+  background-color: #4a6cff;
+  color: white;
+}
+
+table td {
+  color: #333;
+}
+
+.task-row {
+  cursor: move;
+  transition: background-color 0.3s;
+}
+
+.task-row:hover {
+  background-color: #e8ecff;
+}
+
+.selected {
+  background-color: #ffeb3b; /* Highlight color for selected tasks */
+}
+
+/* --- Draggable Styles --- */
+tr[draggable="true"]:hover {
+  background-color: #ddd;
+}
+
+/* --- Delete Button --- */
+.delete-btn {
+  background: red;
+  color: white;
+  border: none;
+  padding: 6px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.delete-btn:hover {
+  background-color: darkred;
+}
+
+/* --- Logout Button --- */
+.logout-btn {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: #4a6cff;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  font-size: 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.logout-btn:hover {
+  background: #324bd6;
+}
+
+.delete-selected-btn {
+  padding: 12px 20px;
+  background-color: #e74c3c;
+  color: white;
+  font-size: 16px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  width: 100%;
+  margin-top: 20px;
+}
+
+.delete-selected-btn:hover {
+  background-color: #c0392b;
+}
