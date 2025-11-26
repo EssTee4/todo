@@ -38,50 +38,6 @@ input {
   box-sizing: border-box;
 }
 
-/* --- Remember Me Checkbox --- */
-.remember-me {
-  display: flex;
-  justify-content: flex-start;
-  margin-top: 10px;
-  padding-left: 12px;
-}
-
-.remember-me input {
-  margin-right: 10px;
-}
-
-.remember-me label {
-  font-size: 14px;
-}
-
-/* --- Show Password Button --- */
-.show-password {
-  position: absolute;
-  right: 15px;
-  top: 50%;
-  transform: translateY(-50%);
-  cursor: pointer;
-  font-size: 18px;
-  color: #4a6cff;
-}
-
-/* --- Submit Button --- */
-button {
-  width: 100%;
-  padding: 12px;
-  background-color: #4a6cff;
-  color: white;
-  border: none;
-  font-size: 16px;
-  border-radius: 8px;
-  cursor: pointer;
-  margin-top: 10px;
-}
-
-button:hover {
-  background-color: #324bd6;
-}
-
 /* --- Popup Notifications --- */
 .popup {
   position: fixed;
@@ -244,17 +200,20 @@ tr[draggable="true"]:hover {
 }
 
 /* --- Delete Button --- */
-.delete-btn {
-  background: red;
+.delete-selected-btn {
+  padding: 12px 20px;
+  background-color: #e74c3c;
   color: white;
+  font-size: 16px;
   border: none;
-  padding: 6px 10px;
   border-radius: 6px;
   cursor: pointer;
+  width: 100%;
+  margin-top: 20px;
 }
 
-.delete-btn:hover {
-  background-color: darkred;
+.delete-selected-btn:hover {
+  background-color: #c0392b;
 }
 
 /* --- Logout Button --- */
@@ -274,20 +233,4 @@ tr[draggable="true"]:hover {
 
 .logout-btn:hover {
   background: #324bd6;
-}
-
-.delete-selected-btn {
-  padding: 12px 20px;
-  background-color: #e74c3c;
-  color: white;
-  font-size: 16px;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  width: 100%;
-  margin-top: 20px;
-}
-
-.delete-selected-btn:hover {
-  background-color: #c0392b;
 }
