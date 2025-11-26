@@ -1,90 +1,180 @@
-const express = require('express');
-const session = require('express-session');
-const bcrypt = require('bcryptjs');
-const db = require('./database');
+const express = require("express");
+const sqlite3 = require("sqlite3").verbose();
+const path = require("path");
+const session = require("express-session");
+
 const app = express();
-
-// ---- Body Parsers ----
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.static(path.join(__dirname, "public")));
 
-// ---- Sessions ----
+// Session config: secure:false for localhost, sameSite:lax so fetch sends cookie
 app.use(session({
-    secret: "123secretkey!",
-    resave: false,
-    saveUninitialized: false,
+  secret: "todo-secret",
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    httpOnly: true,
+    secure: false,
+    sameSite: "lax"
+  }
 }));
 
-// ---- Serve static files ----
-app.use(express.static('public'));
-
-// ---- Redirect root to login ----
-app.get('/', (req, res) => {
-    res.redirect('/login.html');
+// DB setup (file: tasks.db in project root)
+const db = new sqlite3.Database(path.join(__dirname, "tasks.db"), err => {
+  if (err) console.error("DB open error:", err);
 });
 
-// ---- Protect profile page ----
-app.get('/profile.html', (req, res, next) => {
-    if (!req.session.userId) return res.redirect('/login.html');
-    next();
+// Create tables
+db.serialize(() => {
+  db.run(`
+    CREATE TABLE IF NOT EXISTS users (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      username TEXT UNIQUE,
+      password TEXT
+    )
+  `);
+
+  db.run(`
+    CREATE TABLE IF NOT EXISTS tasks (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER,
+      task TEXT,
+      status TEXT DEFAULT 'todo'
+    )
+  `);
 });
 
-// ---- LOGIN ----
-app.post('/login', (req, res) => {
-    const { username, password } = req.body;
+// Helper: requireLogin that returns JSON for API calls and redirect for page loads
+function requireLogin(req, res, next) {
+  if (req.session && req.session.user) return next();
 
-    db.get("SELECT * FROM users WHERE username=?", [username], (err, user) => {
-        if (err || !user || !bcrypt.compareSync(password, user.password)) {
-            return res.json({ error: "Invalid credentials" });
-        }
-        req.session.userId = user.id;
-        res.json({ success: true });
-    });
+  // If request expects JSON (API call), return 401 JSON
+  const accepts = req.headers.accept || "";
+  if (accepts.includes("application/json") || req.path.startsWith("/tasks")) {
+    return res.status(401).json({ success: false, error: "Not logged in" });
+  }
+
+  // Otherwise redirect to login page
+  return res.redirect("/login.html");
+}
+
+// ---------- AUTH ROUTES ----------
+
+// Register
+app.post("/register", (req, res) => {
+  const { username, password } = req.body;
+  if (!username || !password) return res.json({ success: false, error: "Missing" });
+
+  db.run(
+    `INSERT INTO users (username, password) VALUES (?, ?)`,
+    [username, password],
+    function (err) {
+      if (err) return res.json({ success: false, error: "Username already exists" });
+      res.json({ success: true });
+    }
+  );
 });
 
-// ---- TASKS API ----
-app.get('/tasks', (req, res) => {
-    db.all("SELECT * FROM tasks WHERE user_id = ?", [req.session.userId], (err, tasks) => {
-        if (err) return res.status(500).json({ error: err.message });
-        res.json(tasks);
-    });
+// Login
+app.post("/login", (req, res) => {
+  const { username, password } = req.body;
+  db.get(
+    `SELECT id, username FROM users WHERE username = ? AND password = ?`,
+    [username, password],
+    (err, user) => {
+      if (err || !user) return res.json({ success: false, error: "Invalid credentials" });
+
+      // store minimal user info in session (avoid storing password)
+      req.session.user = { id: user.id, username: user.username };
+      res.json({ success: true });
+    }
+  );
 });
 
-app.post('/tasks', (req, res) => {
-    const { task, status } = req.body;
-    const userId = req.session.userId;
-    db.run("INSERT INTO tasks (task, status, user_id) VALUES (?, ?, ?)", [task, status, userId], function (err) {
-        if (err) return res.status(500).json({ error: err.message });
-        res.status(201).json({ id: this.lastID, task, status });
-    });
+// Logout
+app.get("/logout", (req, res) => {
+  req.session.destroy(err => {
+    // ignore err; send JSON success
+    res.json({ success: true });
+  });
 });
 
-app.put('/tasks/:id', (req, res) => {
-    const { status } = req.body;
-    const { id } = req.params;
-    db.run("UPDATE tasks SET status = ? WHERE id = ?", [status, id], (err) => {
-        if (err) return res.status(500).json({ error: err.message });
-        res.json({ success: true });
-    });
+// ---------- TASK ROUTES (protected) ----------
+
+// Get tasks
+app.get("/tasks", requireLogin, (req, res) => {
+  db.all(`SELECT id, task, status FROM tasks WHERE user_id = ?`, [req.session.user.id], (err, rows) => {
+    if (err) return res.status(500).json({ success: false, error: "DB error" });
+    res.json(rows || []);
+  });
 });
 
-app.delete('/tasks/:id', (req, res) => {
-    const { id } = req.params;
-    db.run("DELETE FROM tasks WHERE id = ?", [id], (err) => {
-        if (err) return res.status(500).json({ error: err.message });
-        res.json({ success: true });
-    });
+// Add task
+app.post("/tasks", requireLogin, (req, res) => {
+  const { task, status } = req.body;
+  if (!task) return res.json({ success: false, error: "Task required" });
+
+  const safeStatus = (typeof status === "string" && status.length) ? status : "todo";
+
+  db.run(
+    `INSERT INTO tasks (user_id, task, status) VALUES (?, ?, ?)`,
+    [req.session.user.id, task, safeStatus],
+    function (err) {
+      if (err) {
+        console.error("Insert task error:", err);
+        return res.json({ success: false, error: "DB insert failed" });
+      }
+      res.json({ success: true, id: this.lastID });
+    }
+  );
 });
 
-
-
-// ---- LOGOUT ----
-app.get('/logout', (req, res) => {
-    req.session.destroy();
-    res.redirect('/login.html');
+// Update task (status)
+app.put("/tasks/:id", requireLogin, (req, res) => {
+  const { status } = req.body;
+  db.run(
+    `UPDATE tasks SET status = ? WHERE id = ? AND user_id = ?`,
+    [status, req.params.id, req.session.user.id],
+    function (err) {
+      if (err) {
+        console.error("Update task error:", err);
+        return res.json({ success: false });
+      }
+      res.json({ success: true });
+    }
+  );
 });
 
-// ---- Server ----
-app.listen(3000, () => {
-    console.log("Server running on http://localhost:3000");
+// Delete task
+app.delete("/tasks/:id", requireLogin, (req, res) => {
+  db.run(
+    `DELETE FROM tasks WHERE id = ? AND user_id = ?`,
+    [req.params.id, req.session.user.id],
+    function (err) {
+      if (err) {
+        console.error("Delete task error:", err);
+        return res.json({ success: false });
+      }
+      res.json({ success: true });
+    }
+  );
 });
+
+// ---------- HTML routes ----------
+
+// serve login by default
+app.get("/", (req, res) => res.sendFile(path.join(__dirname, "public", "login.html")));
+
+// protected profile route (serves static profile.html but only when logged in)
+app.get("/profile", requireLogin, (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "profile.html"));
+});
+
+// register page
+app.get("/register", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "register.html"));
+});
+
+// start server
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));

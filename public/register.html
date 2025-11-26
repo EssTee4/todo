@@ -1,69 +1,26 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Register - ToDo App</title>
-    <link rel="stylesheet" href="style.css">
+  <meta charset="utf-8" />
+  <title>Register - ToDo App</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-    <div class="auth-container">
-        <h2>Create Account</h2>
-        <input type="text" id="username" placeholder="Username" required>
-        <input type="password" id="password" placeholder="Password" required>
-        <input type="password" id="confirmPassword" placeholder="Confirm Password" required>
-        <button onclick="registerUser()">Register</button>
-        <div class="auth-footer">
-            <p>Already have an account? <a href="login.html">Login</a></p>
-        </div>
+  <div class="auth-container">
+    <h2>Create Account</h2>
+
+    <input type="text" id="username" placeholder="Username" required />
+    <div class="password-wrapper">
+      <input type="password" id="password" placeholder="Password" required />
+      <span class="show-password" onclick="togglePassword()">👁️</span>
     </div>
 
-    <script>
-        async function registerUser() {
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
-            const confirmPassword = document.getElementById('confirmPassword').value;
+    <button id="registerBtn">Create Account</button>
 
-            // Password length validation
-            if (password.length < 8) {
-                showPopup("Password must be at least 8 characters long", true);
-                return;
-            }
+    <p class="switch-page">Already have an account? <a href="login.html">Login</a></p>
+  </div>
 
-            if (password !== confirmPassword) {
-                showPopup("Passwords do not match", true);
-                return;
-            }
-
-            const res = await fetch('/register', {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ username, password })
-            });
-
-            const data = await res.json();
-            if (data.success) {
-                showPopup("Registered Successfully!");
-                setTimeout(() => {
-                    window.location.href = "login.html";
-                }, 1500);
-            } else {
-                showPopup(data.error, true);
-            }
-        }
-
-        function showPopup(message, isError = false) {
-            let popup = document.createElement("div");
-            popup.className = "popup";
-            if (isError) popup.classList.add("error");
-            popup.innerHTML = message;
-            document.body.appendChild(popup);
-            setTimeout(() => popup.classList.add("show"), 50);
-            setTimeout(() => {
-                popup.classList.remove("show");
-                setTimeout(() => popup.remove(), 500);
-            }, 3000);
-        }
-    </script>
+<script src="js/register.js"></script>
 </body>
 </html>

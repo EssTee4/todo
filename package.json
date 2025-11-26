@@ -1,19 +1,14 @@
 {
-  "name": "todo-website",
+  "name": "todo-app",
   "version": "1.0.0",
+  "description": "Simple todo kanban app",
   "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node server.js"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
   "dependencies": {
-    "bcryptjs": "^3.0.3",
-    "express": "^5.1.0",
-    "express-session": "^1.18.2",
-    "sqlite3": "^5.1.7"
-  },
-  "description": ""
+    "express": "^4.18.2",
+    "express-session": "^1.17.3",
+    "sqlite3": "^5.1.6"
+  }
 }

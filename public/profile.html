@@ -1,216 +1,42 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Profile - ToDo App</title>
-    <link rel="stylesheet" href="style.css">
+  <meta charset="utf-8" />
+  <title>Dashboard - ToDo App</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-    <div class="profile-container">
-        <div class="profile-header">
-            <h2>Your Tasks</h2>
-        </div>
 
-        <!-- Add Task Section -->
-        <div class="add-task-section">
-            <input id="taskInput" placeholder="Add a new task..." />
-            <button onclick="addTask()">Add Task</button>
-        </div>
+  <div class="navbar">
+    <h2>My Tasks</h2>
+    <button class="logout-btn" id="logoutBtn">Logout</button>
+  </div>
 
-        <!-- Task Sections: To-Do, In Progress, and Completed -->
-        <div class="task-sections">
-            <!-- To-Do Section -->
-            <div id="todoSection" class="task-section" ondrop="drop(event)" ondragover="allowDrop(event)">
-                <h3>To-Do</h3>
-                <table id="todoTable">
-                    <thead>
-                        <tr>
-                            <th>Task</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <!-- Tasks will be dynamically inserted here -->
-                    </tbody>
-                </table>
-            </div>
+  <div class="add-bar">
+    <input id="taskInput" placeholder="New task..." />
+    <button id="addBtn">Add</button>
+  </div>
 
-            <!-- In Progress Section -->
-            <div id="inProgressSection" class="task-section" ondrop="drop(event)" ondragover="allowDrop(event)">
-                <h3>In Progress</h3>
-                <table id="inProgressTable">
-                    <thead>
-                        <tr>
-                            <th>Task</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <!-- Tasks will be dynamically inserted here -->
-                    </tbody>
-                </table>
-            </div>
-
-            <!-- Completed Section -->
-            <div id="completedSection" class="task-section" ondrop="drop(event)" ondragover="allowDrop(event)">
-                <h3>Completed</h3>
-                <table id="completedTable">
-                    <thead>
-                        <tr>
-                            <th>Task</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <!-- Tasks will be dynamically inserted here -->
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <!-- Universal Delete Button -->
-        <button onclick="deleteSelectedTasks()" class="delete-selected-btn">Delete Selected Tasks</button>
-
-        <!-- Logout Button -->
-        <button class="logout-btn" onclick="logout()">Logout</button>
+  <div class="board">
+    <div class="column" data-status="todo">
+      <h3>To Do</h3>
+      <div class="task-list" id="todo"></div>
     </div>
 
-    <script>
-        let tasks = []; // Store tasks locally before rendering
-        let taskIdCounter = 1; // Simple counter for task IDs (just for the demo)
+    <div class="column" data-status="inProgress">
+      <h3>In Progress</h3>
+      <div class="task-list" id="inProgress"></div>
+    </div>
 
-        // Function to load tasks from the server and render them
-        async function loadTasks() {
-            const res = await fetch('/tasks');
-            tasks = await res.json();
-            renderTasks();
-        }
+    <div class="column" data-status="completed">
+      <h3>Completed</h3>
+      <div class="task-list" id="completed"></div>
+    </div>
+  </div>
 
-        // Function to render tasks in their respective sections (To-Do, In Progress, Completed)
-        function renderTasks() {
-            const todoTable = document.getElementById('todoTable').getElementsByTagName('tbody')[0];
-            const inProgressTable = document.getElementById('inProgressTable').getElementsByTagName('tbody')[0];
-            const completedTable = document.getElementById('completedTable').getElementsByTagName('tbody')[0];
+  <button class="delete-btn" id="deleteSelectedBtn">Delete Selected</button>
 
-            // Clear the current tables
-            todoTable.innerHTML = '';
-            inProgressTable.innerHTML = '';
-            completedTable.innerHTML = '';
-
-            // Render tasks into their corresponding sections
-            tasks.forEach(task => {
-                const row = document.createElement('tr');
-                row.id = `task-${task.id}`;
-                row.draggable = true;
-                row.setAttribute('ondragstart', 'drag(event)');
-                row.setAttribute('data-task-id', task.id);
-
-                row.innerHTML = `
-                    <td>${task.task}</td>
-                `;
-
-                // Add event listener for right-click to select tasks
-                row.addEventListener('contextmenu', function(event) {
-                    event.preventDefault(); // Prevent the default right-click menu
-                    toggleTaskSelection(row);
-                });
-
-                if (task.status === 'todo') {
-                    todoTable.appendChild(row);
-                } else if (task.status === 'inProgress') {
-                    inProgressTable.appendChild(row);
-                } else if (task.status === 'completed') {
-                    completedTable.appendChild(row);
-                }
-            });
-        }
-
-        // Add task function
-        async function addTask() {
-            const taskInput = document.getElementById('taskInput');
-            const task = taskInput.value.trim();
-            if (task) {
-                const newTask = { id: taskIdCounter++, task, status: 'todo' };
-                tasks.push(newTask); // Add task to local tasks array
-                await fetch('/tasks', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(newTask)
-                });
-                taskInput.value = '';
-                renderTasks();
-            }
-        }
-
-        // Function to toggle the selection of a task on right-click
-        function toggleTaskSelection(row) {
-            row.classList.toggle('selected'); // Toggle the highlight class
-        }
-
-        // Delete selected tasks function
-        async function deleteSelectedTasks() {
-            const selectedTaskIds = [];
-            const selectedRows = document.querySelectorAll('.task-section .selected');
-            selectedRows.forEach(row => {
-                const taskId = parseInt(row.getAttribute('data-task-id'));
-                selectedTaskIds.push(taskId);
-                row.remove(); // Remove the row from the table immediately
-            });
-
-            // Delete selected tasks from the backend
-            selectedTaskIds.forEach(id => {
-                fetch(`/tasks/${id}`, { method: 'DELETE' });
-            });
-
-            // Remove selected tasks from the local tasks array
-            tasks = tasks.filter(task => !selectedTaskIds.includes(task.id));
-        }
-
-        // Allow drop functionality
-        function allowDrop(ev) {
-            ev.preventDefault();
-        }
-
-        // Handle task dragging
-        function drag(ev) {
-            ev.dataTransfer.setData("text", ev.target.id);
-        }
-
-        // Handle task dropping to different sections
-        async function drop(ev) {
-            ev.preventDefault();
-            const data = ev.dataTransfer.getData("text");
-            const taskId = parseInt(data.split('-')[1]);
-
-            const targetSection = ev.target.closest('.task-section');
-            let newStatus = '';
-            if (targetSection.id === 'todoSection') {
-                newStatus = 'todo';
-            } else if (targetSection.id === 'inProgressSection') {
-                newStatus = 'inProgress';
-            } else if (targetSection.id === 'completedSection') {
-                newStatus = 'completed';
-            }
-
-            // Update the task status in the database
-            const task = tasks.find(task => task.id === taskId);
-            task.status = newStatus;
-
-            await fetch(`/tasks/${taskId}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ status: newStatus })
-            });
-
-            renderTasks();
-        }
-
-        // Logout function
-        async function logout() {
-            await fetch('/logout');
-            window.location.href = '/login.html';
-        }
-
-        // Load tasks when the page loads
-        window.onload = loadTasks;
-    </script>
+<script src="js/profile.js"></script>
 </body>
 </html>
